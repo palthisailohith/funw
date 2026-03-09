@@ -1,0 +1,21 @@
+SELECT
+    date,
+    COUNT(*) AS rows,
+    SUM(weight) AS total_weight,
+    AVG(close_unadjusted_local) AS avg_price,
+    MAX(index_mcap_units) AS max_mcap
+FROM bme.reports.composition_open_view
+GROUP BY date
+ORDER BY date DESC
+LIMIT 10;
+
+
+SELECT
+    instrument_symbol,
+    instrument_name,
+    weight,
+    close_unadjusted_local
+FROM bme.reports.composition_open_view
+WHERE weight > 5
+ORDER BY weight DESC
+LIMIT 20;
