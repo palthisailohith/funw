@@ -1,0 +1,45 @@
+CREATE VIEW bme.reports.close_20000_view AS
+SELECT
+    TRY_CAST(date AS DATE) AS date,
+    TRY_CAST(index_symbol AS INTEGER) AS index_symbol,
+    index_name,
+    index_isin,
+    index_type,
+    index_currency,
+
+    TRY_CAST(index_open AS DOUBLE) AS index_open,
+    TRY_CAST(index_settlement_value AS DOUBLE) AS index_settlement_value,
+    TRY_CAST(index_value_high AS DOUBLE) AS index_value_high,
+    TRY_CAST(index_value_low AS DOUBLE) AS index_value_low,
+    TRY_CAST(index_close AS DOUBLE) AS index_close,
+
+    TRY_CAST(index_component_count AS INTEGER) AS index_component_count,
+    TRY_CAST(index_float AS DOUBLE) AS index_float,
+    TRY_CAST(index_mcap_units AS DOUBLE) AS index_mcap_units,
+    TRY_CAST(index_divisor AS DOUBLE) AS index_divisor,
+
+    TRY_CAST(valor_number AS BIGINT) AS valor_number,
+    isin,
+    ric,
+    instrument_symbol,
+    instrument_name,
+    country,
+    currency,
+    exchange,
+
+    TRY_CAST(six_classification AS INTEGER) AS six_classification,
+    TRY_CAST(shares AS BIGINT) AS shares,
+    TRY_CAST(free_float AS DOUBLE) AS free_float,
+    TRY_CAST(capfactor AS DOUBLE) AS capfactor,
+    TRY_CAST(weightfactor AS DOUBLE) AS weightfactor,
+    TRY_CAST(ci_factor AS DOUBLE) AS ci_factor,
+
+    TRY_CAST(close_unadjusted_local AS DOUBLE) AS close_unadjusted_local,
+    TRY_CAST(close_adjusted_local AS DOUBLE) AS close_adjusted_local,
+    TRY_CAST(fx_local_to_index_currency AS DOUBLE) AS fx_local_to_index_currency,
+
+    TRY_CAST(index_mcap_units_local AS DOUBLE) AS index_mcap_units_local,
+    TRY_CAST(mcap_units_index_currency AS DOUBLE) AS mcap_units_index_currency,
+    TRY_CAST(weight AS DOUBLE) AS weight
+
+FROM bme.reports.close_20000_csv;
