@@ -1,0 +1,77 @@
+kubectl apply -f - <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: minio-sensor
+  namespace: argo-events
+spec:
+  template:
+    serviceAccountName: argo-events-sa
+  dependencies:
+    - name: minio-dep
+      eventSourceName: minio
+      eventName: uploads
+  triggers:
+    - template:
+        name: trigger-pipeline
+        argoWorkflow:
+          group: argoproj.io
+          version: v1alpha1
+          resource: workflows
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: minio-triggered-
+                namespace: argo
+              spec:
+                entrypoint: run-pipeline
+                templates:
+                  - name: run-pipeline
+                    container:
+                      image: argo-metaflowbackend-test:v5
+                      imagePullPolicy: Never
+                      command: ["/bin/sh", "-c"]
+                      args:
+                        - >
+                          python /opt/pipelines/indexreviewerbackend/job/index_reviewer_job.py
+                          --datastore=s3
+                          argo-workflows
+                          --name argo-index-reviewer-workflow
+                          run
+                          --index_symbol smi
+                          --step_name capping
+                          --prices_cutoff_date 2024-12-12
+                          --effective_date 2025-06-30
+                          --selection_output_date 2024-07-01
+                          --input_selection_list_date 2024-07-01
+                      env:
+                        - name: METAFLOW_SERVICE_URL
+                          value: "https://metaflow-dap-metadata-metaflow-dap-six-index-1.ingress.nap01.ocp.six-group.net:443"
+                        - name: METAFLOW_DEFAULT_DATASTORE
+                          value: "s3"
+                        - name: METAFLOW_S3_ENDPOINT_URL
+                          value: "http://minio-dap-api-minio-dap-six-index-1.ingress.nap01.ocp.six-group.net:29000/"
+                        - name: AWS_ACCESS_KEY_ID
+                          value: "minio"
+                        - name: AWS_SECRET_ACCESS_KEY
+                          value: "minio123"
+                        - name: METAFLOW_ARGO_WORKFLOWS_NAMESPACE
+                          value: "argo"
+                        - name: USERNAME
+                          value: "dap-user"
+                        - name: KUBECONFIG
+                          value: "/root/.kube/kind-config"
+                        - name: SECURE_CONNECTION
+                          value: "False"
+                        - name: MINIO_SERVER
+                          value: "minio-dap-api-minio-dap-six-index-1.ingress.nap01.ocp.six-group.net:29000"
+                        - name: MINIO_ACCESS_KEY
+                          value: "minio"
+                        - name: MINIO_SECRET_KEY
+                          value: "minio123"
+                        - name: TRINO_HOSTNAME
+                          value: "trino-dap-api-six-index-1.ingress.nap01.ocp.six-group.net"
+EOF
