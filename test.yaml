@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-setup
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: secrets-vol
+          secret:
+            secretName: minio-setup-secrets
+        - name: config-vol
+          configMap:
+            name: minio-users-config
+        - name: script-vol
+          configMap:
+            name: minio-setup-script
+
+      containers:
+        - name: minio-setup
+          image: python:3.11-slim
+          command:
+            - sh
+            - -c
+            - |
+              pip install minio==7.2.9 pyyaml==6.0.1 -q
+              python /scripts/minio-setup.py \
+                /config/minio-users.yaml \
+                /secrets/minio-secrets.yaml
+          volumeMounts:
+            - name: secrets-vol
+              mountPath: /secrets
+              readOnly: true
+            - name: config-vol
+              mountPath: /config
+              readOnly: true
+            - name: script-vol
+              mountPath: /scripts
+              readOnly: true
