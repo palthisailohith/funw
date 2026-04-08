@@ -1,0 +1,161 @@
+# MinIO RBAC
+
+Automates MinIO user, policy, and bucket management on OpenShift.  
+No Ansible. No ArgoCD. No manual UI clicks.
+
+---
+
+## How it works
+
+```
+minio-users.yaml  +  minio-secrets.yaml
+          ↓
+      minio-setup.py
+          ↓
+  MinIO (buckets, policies, users)
+```
+
+- Policies are defined once and shared across many users
+- Users run in parallel — 10 or 20 users takes the same time as 1
+- Safe to re-run anytime — nothing gets duplicated
+
+---
+
+## Files
+
+```
+minio-rbac/
+├── minio-setup.py          # the script
+├── minio-users.yaml        # users, policies, buckets — commit this
+├── minio-secrets.yaml      # passwords + admin creds — never commit
+├── minio-setup-job.yaml    # OpenShift Job
+├── Dockerfile              # packages baked in (no internet needed)
+├── requirements.txt        # minio==7.2.9, pyyaml==6.0.1
+└── .gitignore              # excludes minio-secrets.yaml
+```
+
+---
+
+## Access levels
+
+| Level | List | Download | Upload | Delete |
+|-------|------|----------|--------|--------|
+| `readonly` | ✅ | ✅ | ❌ | ❌ |
+| `writeonly` | ✅ | ❌ | ✅ | ✅ |
+| `readwrite` | ✅ | ✅ | ✅ | ✅ |
+| `listonly` | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## minio-users.yaml
+
+```yaml
+policies:
+  - name: rw-bucket-a
+    bucket: bucket-a
+    access: readwrite
+
+  - name: ro-bucket-b
+    bucket: bucket-b
+    access: readonly
+
+  # one policy, multiple buckets
+  - name: rw-bucket-a-and-b
+    buckets:
+      - bucket-a
+      - bucket-b
+    access: readwrite
+
+users:
+  - username: alice
+    policies:
+      - rw-bucket-a
+
+  - username: bob
+    policies:
+      - ro-bucket-b
+      - rw-bucket-a       # users can have multiple policies
+```
+
+Buckets are created automatically if they don't exist.
+
+---
+
+## minio-secrets.yaml — never commit
+
+```yaml
+minio_admin:
+  endpoint: your-minio-route.example.com:9000
+  access_key: your-admin-key
+  secret_key: your-admin-secret
+  secure: false
+
+user_passwords:
+  alice: "password"
+  bob: "password"
+```
+
+Every username in `minio-users.yaml` must have a matching entry here.
+
+---
+
+## Local usage
+
+```bash
+pip install -r requirements.txt
+python minio-setup.py
+```
+
+---
+
+## Adding a new user
+
+1. Add to `minio-users.yaml`
+2. Add password to `minio-secrets.yaml`
+3. Run the script
+4. Commit only `minio-users.yaml`
+
+---
+
+## OpenShift
+
+### First time
+
+```bash
+# store secrets in cluster
+oc create secret generic minio-setup-secrets \
+  --from-file=minio-secrets.yaml=./minio-secrets.yaml
+
+oc create configmap minio-users-config \
+  --from-file=minio-users.yaml=./minio-users.yaml
+
+oc create configmap minio-setup-script \
+  --from-file=minio-setup.py=./minio-setup.py
+
+# build image (cluster has no internet access)
+docker build -t sidx-docker-virtual.artifactory.six-group.net/minio-setup:latest .
+docker push sidx-docker-virtual.artifactory.six-group.net/minio-setup:latest
+
+# run
+oc apply -f minio-setup-job.yaml
+oc logs job/minio-setup -f
+```
+
+### Every time you update users
+
+```bash
+oc create configmap minio-users-config \
+  --from-file=minio-users.yaml=./minio-users.yaml \
+  --dry-run=client -o yaml | oc apply -f -
+
+oc delete job minio-setup
+oc apply -f minio-setup-job.yaml
+```
+
+---
+
+## Rules
+
+- `minio-secrets.yaml` is in `.gitignore` — never commit it
+- Script is idempotent — safe to re-run anytime
+- If a bucket, policy, or user already exists it just updates it
