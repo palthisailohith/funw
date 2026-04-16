@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIX Converter — Universal File Toolkit</title>
+<!-- Libraries loaded on demand only -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.15);
+  --text: #e8e8f0;
+  --text2: #8888aa;
+  --text3: #555570;
+  --accent: #4f6ef7;
+  --accent2: #7c3aed;
+  --accent-glow: rgba(79,110,247,0.15);
+  --green: #22c55e;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(79,110,247,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,110,247,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; }
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,10,15,0.8);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.logo-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.logo-sub {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 400;
+  margin-top: 1px;
+}
+
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 500;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 65px);
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  margin-bottom: 8px;
+}
+
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 20px;
+  margin-bottom: 4px;
+  margin-top: 16px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+  font-size: 13px;
+  color: var(--text2);
+  font-weight: 400;
+}
+
+.sidebar-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+}
+
+.sidebar-item.active {
+  background: var(--accent-glow);
+  border-left-color: var(--accent);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.sidebar-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* Main content */
+.main {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Tool header */
+.tool-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tool-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.tool-desc {
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.tool-tags {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.tag-blue { background: rgba(79,110,247,0.1); color: #818cf8; border-color: rgba(79,110,247,0.2); }
+.tag-green { background: rgba(34,197,94,0.1); color: #4ade80; border-color: rgba(34,197,94,0.2); }
+.tag-amber { background: rgba(245,158,11,0.1); color: #fbbf24; border-color: rgba(245,158,11,0.2); }
+.tag-purple { background: rgba(124,58,237,0.1); color: #a78bfa; border-color: rgba(124,58,237,0.2); }
+
+/* Drop zone */
+.dropzone {
+  border: 1px dashed var(--border-hover);
+  border-radius: var(--radius);
+  padding: 48px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg2);
+  position: relative;
+  overflow: hidden;
+}
+
+.dropzone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--accent);
+  background: rgba(79,110,247,0.05);
+}
+
+.dropzone:hover::before, .dropzone.drag-over::before {
+  opacity: 1;
+}
+
+.drop-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 22px;
+  position: relative;
+  z-index: 1;
+}
+
+.drop-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.drop-sub {
+  font-size: 12px;
+  color: var(--text3);
+  position: relative;
+  z-index: 1;
+}
+
+.drop-sub span {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+input[type="file"] { display: none; }
+
+/* Options panel */
+.options-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.opt-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opt-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+select, input[type="range"], input[type="number"], input[type="text"] {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 140px;
+}
+
+select:focus, input:focus { border-color: var(--accent); }
+
+input[type="range"] {
+  padding: 0;
+  height: 4px;
+  cursor: pointer;
+  accent-color: var(--accent);
+  min-width: 160px;
+}
+
+/* Text IO */
+.io-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.io-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.io-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.io-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.io-actions {
+  display: flex;
+  gap: 4px;
+}
+
+textarea {
+  width: 100%;
+  height: 240px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  padding: 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  line-height: 1.6;
+}
+
+textarea:focus { border-color: var(--accent); }
+textarea[readonly] { color: var(--text2); }
+
+.arrow-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 28px;
+  gap: 8px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { background: #3d5ce6; transform: translateY(-1px); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--bg3); color: var(--text); border-color: var(--border-hover); }
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* Convert button (middle) */
+.convert-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.convert-btn:hover { transform: scale(1.1); background: #3d5ce6; }
+
+/* Action bar */
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-left, .action-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Status */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.status-idle { color: var(--text3); }
+.status-ok { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+.status-err { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+.status-loading { background: rgba(79,110,247,0.1); color: #818cf8; border: 1px solid rgba(79,110,247,0.2); }
+
+/* File list */
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
+
+.file-item:hover { border-color: var(--border-hover); }
+
+.file-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-size { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.file-status {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.fs-pending { background: var(--bg3); color: var(--text3); }
+.fs-done { background: rgba(34,197,94,0.1); color: var(--green); }
+.fs-error { background: rgba(239,68,68,0.1); color: var(--red); }
+.fs-processing { background: rgba(79,110,247,0.1); color: #818cf8; }
+
+/* Preview grid */
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.preview-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: all 0.15s;
+}
+
+.preview-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+.preview-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-info {
+  padding: 8px 10px;
+}
+
+.preview-name {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview-size { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* Progress bar */
+.progress-bar {
+  height: 2px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text3);
+}
+
+.empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; }
+.empty-state .empty-title { font-size: 14px; font-weight: 500; color: var(--text2); margin-bottom: 4px; }
+.empty-state .empty-desc { font-size: 12px; }
+
+/* Quality slider row */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.slider-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 36px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── AI Log Analyser styles ─────────────────────────────────────── */
+.ai-settings {
+  background: var(--bg2);
+  border: 1px solid rgba(79,110,247,0.2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.ai-settings-title {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 600;
+  color: #818cf8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-connected {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  background: rgba(34,197,94,0.1);
+  color: var(--green);
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-weight: 500;
+}
+
+.ai-disconnected {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  background: rgba(239,68,68,0.1);
+  color: var(--red);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-weight: 500;
+}
+
+.ai-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.ai-input-group label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.ai-input-group input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  font-family: 'DM Mono', monospace;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.ai-input-group input:focus { border-color: var(--accent); }
+.ai-input-group input::placeholder { color: var(--text3); }
+
+.log-input-area {
+  width: 100%;
+  min-height: 200px;
+  max-height: 320px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  padding: 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  line-height: 1.7;
+}
+.log-input-area:focus { border-color: var(--accent); }
+.log-input-area::placeholder { color: var(--text3); }
+
+.log-type-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.log-type-btn {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.log-type-btn:hover { background: var(--bg3); color: var(--text); }
+.log-type-btn.active { background: rgba(79,110,247,0.15); color: #818cf8; border-color: rgba(79,110,247,0.3); }
+
+.ai-result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.severity-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border: 1px solid;
+}
+
+.severity-critical { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); }
+.severity-warning  { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.25); }
+.severity-info     { background: rgba(79,110,247,0.08); border-color: rgba(79,110,247,0.25); }
+
+.severity-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.badge-critical { background: rgba(239,68,68,0.2); color: #fca5a5; }
+.badge-warning  { background: rgba(245,158,11,0.2); color: #fcd34d; }
+.badge-info     { background: rgba(79,110,247,0.2); color: #a5b4fc; }
+
+.severity-summary {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.result-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.result-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.result-card-body {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.result-card-body code {
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  background: var(--bg3);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: #a5b4fc;
+}
+
+.fix-step {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.fix-step:last-child { border-bottom: none; padding-bottom: 0; }
+
+.fix-step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(79,110,247,0.2);
+  color: #818cf8;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.watch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text2);
+}
+.watch-item:last-child { border-bottom: none; }
+.watch-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex-shrink: 0; margin-top: 5px; }
+
+.thinking-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.thinking-dots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #818cf8;
+  animation: blink 1.2s infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+.ai-analyse-btn {
+  background: linear-gradient(135deg, #4f6ef7, #7c3aed);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-analyse-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+.ai-analyse-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">SX</div>
+    <div>
+      <div class="logo-text">SIX Converter</div>
+      <div class="logo-sub">Universal Offline File Toolkit</div>
+    </div>
+  </div>
+  <div class="header-badge">
+    <div class="badge-dot"></div>
+    100% Offline — No data leaves your machine
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Images</div>
+    <div class="sidebar-item active" onclick="showTool('img-convert')" id="nav-img-convert">
+      <div class="sidebar-icon" style="background:rgba(79,110,247,0.15)">🖼</div>
+      Format Converter
+    </div>
+    <div class="sidebar-item" onclick="showTool('img-compress')" id="nav-img-compress">
+      <div class="sidebar-icon" style="background:rgba(124,58,237,0.15)">⚡</div>
+      Compressor
+    </div>
+    <div class="sidebar-item" onclick="showTool('img-resize')" id="nav-img-resize">
+      <div class="sidebar-icon" style="background:rgba(34,197,94,0.15)">⊡</div>
+      Resize & Crop
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">PDF</div>
+    <div class="sidebar-item" onclick="showTool('pdf-merge')" id="nav-pdf-merge">
+      <div class="sidebar-icon" style="background:rgba(239,68,68,0.15)">⊕</div>
+      Merge PDFs
+    </div>
+    <div class="sidebar-item" onclick="showTool('pdf-split')" id="nav-pdf-split">
+      <div class="sidebar-icon" style="background:rgba(245,158,11,0.15)">✂</div>
+      Split / Extract Pages
+    </div>
+    <div class="sidebar-item" onclick="showTool('pdf-img')" id="nav-pdf-img">
+      <div class="sidebar-icon" style="background:rgba(79,110,247,0.15)">⬡</div>
+      Pages to Images
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Spreadsheets</div>
+    <div class="sidebar-item" onclick="showTool('xl-csv')" id="nav-xl-csv">
+      <div class="sidebar-icon" style="background:rgba(34,197,94,0.15)">⊞</div>
+      Excel ↔ CSV
+    </div>
+    <div class="sidebar-item" onclick="showTool('csv-json')" id="nav-csv-json">
+      <div class="sidebar-icon" style="background:rgba(245,158,11,0.15)">⊟</div>
+      CSV ↔ JSON
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Text Formats</div>
+    <div class="sidebar-item" onclick="showTool('xml-json')" id="nav-xml-json">
+      <div class="sidebar-icon" style="background:rgba(124,58,237,0.15)">⇄</div>
+      XML ↔ JSON
+    </div>
+    <div class="sidebar-item" onclick="showTool('json-yaml')" id="nav-json-yaml">
+      <div class="sidebar-icon" style="background:rgba(79,110,247,0.15)">⇅</div>
+      JSON ↔ YAML
+    </div>
+    <div class="sidebar-item" onclick="showTool('json-fmt')" id="nav-json-fmt">
+      <div class="sidebar-icon" style="background:rgba(34,197,94,0.15)">{ }</div>
+      JSON Formatter
+    </div>
+    <div class="sidebar-item" onclick="showTool('md-html')" id="nav-md-html">
+      <div class="sidebar-icon" style="background:rgba(245,158,11,0.15)">M↓</div>
+      Markdown → HTML
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Encoding</div>
+    <div class="sidebar-item" onclick="showTool('encode')" id="nav-encode">
+      <div class="sidebar-icon" style="background:rgba(79,110,247,0.15)">⊘</div>
+      Base64 / Hex / URL
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Archive</div>
+    <div class="sidebar-item" onclick="showTool('zip')" id="nav-zip">
+      <div class="sidebar-icon" style="background:rgba(124,58,237,0.15)">📦</div>
+      ZIP Creator
+    </div>
+    <div class="sidebar-item" onclick="showTool('unzip')" id="nav-unzip">
+      <div class="sidebar-icon" style="background:rgba(245,158,11,0.15)">📂</div>
+      ZIP Extractor
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label" style="color:#818cf8">AI Powered</div>
+    <div class="sidebar-item" onclick="showTool('ai-log')" id="nav-ai-log" style="position:relative">
+      <div class="sidebar-icon" style="background:linear-gradient(135deg,rgba(79,110,247,0.3),rgba(124,58,237,0.3))">✦</div>
+      Log Analyser
+      <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:600;background:linear-gradient(135deg,#4f6ef7,#7c3aed);color:white;padding:2px 6px;border-radius:10px">AI</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Main workspace -->
+<main class="main" id="main-content">
+  <!-- Content injected by JS -->
+</main>
+
+</div>
+</div>
+
+<script>
+// PDF.js worker
+// ── Lazy library loader ────────────────────────────────────────────────────
+const _loaded = {};
+function loadLib(url, globalName) {
+  if(_loaded[globalName]) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.onload = () => { _loaded[globalName] = true; resolve(); };
+    s.onerror = () => reject(new Error('Failed to load ' + globalName));
+    document.head.appendChild(s);
+  });
+}
+async function ensureJSZip() {
+  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','JSZip');
+}
+async function ensurePDFLib() {
+  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js','PDFLib');
+}
+async function ensureXLSX() {
+  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','XLSX');
+}
+async function ensurePDFJS() {
+  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','pdfjsLib');
+  if(!_loaded['pdfjsWorker']) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    _loaded['pdfjsWorker'] = true;
+  }
+}
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function fmt(bytes) {
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(2) + ' MB';
+}
+
+function ext(name) { return name.split('.').pop().toLowerCase(); }
+
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
+function downloadText(text, name, mime='text/plain') {
+  download(new Blob([text],{type:mime}), name);
+}
+
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.className = 'status status-' + type;
+  el.textContent = msg;
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).catch(()=>{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+function getFileIcon(name) {
+  const e = ext(name);
+  const map = {pdf:'📄',xlsx:'📊',xls:'📊',csv:'📋',json:'{ }',xml:'⊞',yaml:'⊟',yml:'⊟',
+    jpg:'🖼',jpeg:'🖼',png:'🖼',webp:'🖼',bmp:'🖼',gif:'🖼',
+    zip:'📦',txt:'📝',md:'📝',html:'🌐'};
+  return map[e] || '📁';
+}
+
+function iconBg(name) {
+  const e = ext(name);
+  if(['pdf'].includes(e)) return 'rgba(239,68,68,0.15)';
+  if(['xlsx','xls','csv'].includes(e)) return 'rgba(34,197,94,0.15)';
+  if(['jpg','jpeg','png','webp','bmp','gif'].includes(e)) return 'rgba(79,110,247,0.15)';
+  if(['zip'].includes(e)) return 'rgba(124,58,237,0.15)';
+  return 'rgba(245,158,11,0.15)';
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function showTool(id) {
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+  const nav = document.getElementById('nav-' + id);
+  if(nav) nav.classList.add('active');
+  tools[id]();
+}
+
+// ── Tool Renderer Helpers ──────────────────────────────────────────────────
+function toolHeader(title, desc, tags) {
+  return `<div class="tool-header">
+    <div>
+      <div class="tool-title">${title}</div>
+      <div class="tool-desc">${desc}</div>
+    </div>
+    <div class="tool-tags">${tags.map(([t,c])=>`<span class="tag tag-${c}">${t}</span>`).join('')}</div>
+  </div>`;
+}
+
+function dropZone(id, accept, multi, label, sub) {
+  return `<div class="dropzone" id="dz-${id}" onclick="document.getElementById('fi-${id}').click()"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="event.preventDefault();this.classList.remove('drag-over');handleDrop('${id}',event.dataTransfer.files)">
+    <input type="file" id="fi-${id}" accept="${accept}" ${multi?'multiple':''} onchange="handleDrop('${id}',this.files)">
+    <div class="drop-icon">${label}</div>
+    <div class="drop-title">Drop files here</div>
+    <div class="drop-sub">${sub} or <span>browse</span></div>
+  </div>`;
+}
+
+function textIO(inLabel, outLabel, inPlaceholder) {
+  return `<div class="io-grid">
+    <div class="io-box">
+      <div class="io-header">
+        <div class="io-label">${inLabel}</div>
+        <div class="io-actions">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="document.getElementById('ta-in').value=''" title="Clear">✕</button>
+        </div>
+      </div>
+      <textarea id="ta-in" placeholder="${inPlaceholder}"></textarea>
+    </div>
+    <div class="arrow-col">
+      <button class="convert-btn" onclick="runTextConvert()" title="Convert">→</button>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="swapTextIO()" title="Swap">⇄</button>
+    </div>
+    <div class="io-box">
+      <div class="io-header">
+        <div class="io-label">${outLabel}</div>
+        <div class="io-actions">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="copyText(document.getElementById('ta-out').value)" title="Copy">⎘</button>
+        </div>
+      </div>
+      <textarea id="ta-out" readonly placeholder="Output appears here..."></textarea>
+    </div>
+  </div>`;
+}
+
+function actionBar(downloadFn, extraBtns='') {
+  return `<div class="action-bar">
+    <div class="action-left">
+      <button class="btn btn-primary" onclick="${downloadFn}">↓ Download</button>
+      ${extraBtns}
+    </div>
+    <div class="action-right">
+      <span class="status status-idle" id="st-main">Ready</span>
+    </div>
+  </div>`;
+}
+
+function swapTextIO() {
+  const a = document.getElementById('ta-in');
+  const b = document.getElementById('ta-out');
+  [a.value, b.value] = [b.value, a.value];
+}
+
+// ── Current text convert fn ────────────────────────────────────────────────
+let currentTextConvert = null;
+let currentFiles = [];
+
+function runTextConvert() {
+  if(!currentTextConvert) return;
+  const inp = document.getElementById('ta-in')?.value?.trim();
+  if(!inp) { setStatus('st-main','err','No input'); return; }
+  try {
+    const out = currentTextConvert(inp);
+    document.getElementById('ta-out').value = out;
+    setStatus('st-main','ok','Converted');
+  } catch(e) {
+    document.getElementById('ta-out').value = '';
+    setStatus('st-main','err', e.message || 'Error');
+  }
+}
+
+// ── Drop handler ───────────────────────────────────────────────────────────
+function handleDrop(id, files) {
+  if(dropHandlers[id]) dropHandlers[id](Array.from(files));
+}
+const dropHandlers = {};
+
+// ── TOOLS ──────────────────────────────────────────────────────────────────
+const tools = {
+
+// IMAGE CONVERTER
+'img-convert': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Image Format Converter','Convert between JPEG, PNG, WebP, and BMP — all offline',[['Offline','green'],['Bulk','blue']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Output Format</div>
+        <select id="img-fmt" onchange="window.onFmtChange&&window.onFmtChange(this.value)">
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/png">PNG</option>
+          <option value="image/webp">WebP</option>
+          <option value="image/bmp">BMP</option>
+        </select>
+      </div>
+      <div class="opt-group" id="quality-group">
+        <div class="opt-label">Quality <span id="quality-applies" style="color:var(--color-text-tertiary);font-weight:400">(JPEG/WebP only)</span></div>
+        <div class="slider-row">
+          <input type="range" id="img-quality" min="10" max="100" value="92" oninput="document.getElementById('qv').textContent=this.value+'%'">
+          <span class="slider-val" id="qv">92%</span>
+        </div>
+      </div>
+    </div>
+    <div id="fmt-warning" style="display:none;padding:10px 14px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:var(--border-radius-md);font-size:12px;color:#fbbf24;margin-bottom:4px"></div>
+    ${dropZone('img-conv','image/*',true,'🖼','Drop image files')}
+    <div id="img-fl" class="file-list"></div>
+    <div id="img-preview" class="preview-grid"></div>
+    <div class="action-bar">
+      <div class="action-left">
+        <button class="btn btn-primary" onclick="window.runConvert&&window.runConvert()">🖼 Convert</button>
+        <button class="btn btn-ghost" onclick="downloadAllConverted()">↓ Download</button>
+        <button class="btn btn-ghost" onclick="clearImgFiles()">Clear</button>
+      </div>
+      <div class="action-right"><span class="status status-idle" id="st-main">Ready — drop files, pick format, then click Convert</span></div>
+    </div>
+  `;
+  let queuedFiles = [];
+  let convertedFiles = [];
+
+  dropHandlers['img-conv'] = (files) => {
+    queuedFiles.push(...files);
+    renderConvQueue();
+    setStatus('st-main','idle',`${queuedFiles.length} file(s) queued — pick format then click Convert`);
+  };
+
+  function renderConvQueue() {
+    const fl = document.getElementById('img-fl');
+    fl.innerHTML = queuedFiles.map((f,i) => `
+      <div class="file-item" id="conv-item-${i}">
+        <div class="file-icon" style="background:${iconBg(f.name)}">${getFileIcon(f.name)}</div>
+        <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${fmt(f.size)}</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="window._removeConvFile(${i})">✕</button>
+      </div>`).join('');
+  }
+
+  window._removeConvFile = (i) => {
+    queuedFiles.splice(i,1);
+    renderConvQueue();
+    setStatus('st-main','idle', queuedFiles.length ? `${queuedFiles.length} file(s) queued` : 'Ready');
+  };
+
+  window.runConvert = async () => {
+    if(!queuedFiles.length) { setStatus('st-main','err','No files queued'); return; }
+    const imgFmt = document.getElementById('img-fmt').value;
+    const q = parseInt(document.getElementById('img-quality').value)/100;
+    const pg = document.getElementById('img-preview');
+    convertedFiles = [];
+    pg.innerHTML = '';
+    setStatus('st-main','loading','Converting...');
+    for(let i=0; i<queuedFiles.length; i++) {
+      const file = queuedFiles[i];
+      const item = document.getElementById(`conv-item-${i}`);
+      if(item) { item.querySelector('.btn').outerHTML = '<span class="file-status fs-processing">Converting...</span>'; }
+      try {
+        const blob = await convertImage(file, imgFmt, q);
+        const ext2 = imgFmt.split('/')[1].replace('jpeg','jpg');
+        const newName = file.name.replace(/\.[^.]+$/,'.'+ext2);
+        convertedFiles.push({blob, name: newName});
+        if(item) {
+          item.querySelector('.file-status').className = 'file-status fs-done';
+          item.querySelector('.file-status').textContent = '✓ ' + fmt(blob.size);
+        }
+        const card = document.createElement('div');
+        card.className = 'preview-card';
+        const url = URL.createObjectURL(blob);
+        card.innerHTML = `<img class="preview-img" src="${url}"><div class="preview-info"><div class="preview-name">${newName}</div><div class="preview-size">${fmt(blob.size)}</div></div>`;
+        pg.appendChild(card);
+      } catch(e) {
+        if(item) { item.querySelector('.file-status').className='file-status fs-error'; item.querySelector('.file-status').textContent='Error'; }
+      }
+    }
+    setStatus('st-main','ok',`${convertedFiles.length} file(s) converted — click Download`);
+  };
+
+  window.downloadAllConverted = async () => {
+    if(!convertedFiles.length) { setStatus('st-main','err','Convert first'); return; }
+    if(convertedFiles.length===1) { download(convertedFiles[0].blob, convertedFiles[0].name); return; }
+    await ensureJSZip();
+    const zip = new JSZip();
+    convertedFiles.forEach(f => zip.file(f.name, f.blob));
+    download(await zip.generateAsync({type:'blob'}), 'converted-images.zip');
+  };
+
+  window.clearImgFiles = () => {
+    queuedFiles=[]; convertedFiles=[];
+    document.getElementById('img-fl').innerHTML='';
+    document.getElementById('img-preview').innerHTML='';
+    setStatus('st-main','idle','Ready');
+  };
+},
+
+// IMAGE COMPRESSOR
+'img-compress': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Image Compressor','Reduce image file size with quality control — no upload needed',[['Offline','green'],['Lossless option','purple']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Target Quality</div>
+        <div class="slider-row">
+          <input type="range" id="cmp-q" min="10" max="100" value="75" oninput="document.getElementById('cqv').textContent=this.value+'%'">
+          <span class="slider-val" id="cqv">75%</span>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Output Format</div>
+        <select id="cmp-fmt">
+          <option value="image/jpeg">JPEG (best compression)</option>
+          <option value="image/webp">WebP (modern)</option>
+          <option value="image/png">PNG (lossless)</option>
+        </select>
+      </div>
+    </div>
+    ${dropZone('img-cmp','image/*',true,'⚡','Drop images to compress')}
+    <div id="cmp-fl" class="file-list"></div>
+    <div class="action-bar">
+      <div class="action-left">
+        <button class="btn btn-primary" onclick="window.runCompress&&window.runCompress()">⚡ Compress</button>
+        <button class="btn btn-ghost" onclick="window.dlCompressed&&window.dlCompressed()">↓ Download</button>
+        <button class="btn btn-ghost" onclick="window.clearCmp&&window.clearCmp()">Clear</button>
+      </div>
+      <div class="action-right"><span class="status status-idle" id="st-main">Ready — drop files then click Compress</span></div>
+    </div>
+  `;
+  let queuedFiles = [];
+  let results = [];
+
+  dropHandlers['img-cmp'] = (files) => {
+    queuedFiles.push(...files);
+    renderQueue();
+    setStatus('st-main','idle',`${queuedFiles.length} file(s) queued — set options then click Compress`);
+  };
+
+  function renderQueue() {
+    const fl = document.getElementById('cmp-fl');
+    fl.innerHTML = queuedFiles.map((f,i) => `
+      <div class="file-item" id="cmp-item-${i}">
+        <div class="file-icon" style="background:rgba(124,58,237,0.15)">⚡</div>
+        <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${fmt(f.size)}</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="window._removeCmpFile(${i})">✕</button>
+      </div>`).join('');
+  }
+
+  window._removeCmpFile = (i) => {
+    queuedFiles.splice(i, 1);
+    renderQueue();
+    setStatus('st-main','idle', queuedFiles.length ? `${queuedFiles.length} file(s) queued` : 'Ready');
+  };
+
+  window.runCompress = async () => {
+    if(!queuedFiles.length) { setStatus('st-main','err','No files queued'); return; }
+    const q = parseInt(document.getElementById('cmp-q').value)/100;
+    const imgFmt = document.getElementById('cmp-fmt').value;
+    results = [];
+    setStatus('st-main','loading','Compressing...');
+    for(let i=0; i<queuedFiles.length; i++) {
+      const file = queuedFiles[i];
+      const item = document.getElementById(`cmp-item-${i}`);
+      if(item) { item.querySelector('.btn').outerHTML = '<span class="file-status fs-processing">Working...</span>'; }
+      try {
+        const blob = await convertImage(file, imgFmt, q);
+        const ratio = Math.round((1 - blob.size/file.size)*100);
+        if(item) {
+          item.querySelector('.file-name').textContent = `${file.name}  →  ${fmt(file.size)}  →  ${fmt(blob.size)}`;
+          item.querySelector('.file-status').className='file-status fs-done';
+          item.querySelector('.file-status').textContent = ratio > 0 ? `−${ratio}% saved` : `+${Math.abs(ratio)}%`;
+        }
+        const ext2=imgFmt.split('/')[1].replace('jpeg','jpg');
+        results.push({blob, name: file.name.replace(/\.[^.]+$/,'.compressed.'+ext2)});
+      } catch(e) {
+        if(item) { item.querySelector('.file-status').className='file-status fs-error'; item.querySelector('.file-status').textContent='Error'; }
+      }
+    }
+    setStatus('st-main','ok',`${results.length} file(s) compressed — click Download`);
+  };
+
+  window.dlCompressed = async () => {
+    if(!results.length) { setStatus('st-main','err','Compress first'); return; }
+    if(results.length===1) { download(results[0].blob,results[0].name); return; }
+    await ensureJSZip();
+    const zip=new JSZip();
+    results.forEach(f=>zip.file(f.name,f.blob));
+    download(await zip.generateAsync({type:'blob'}),'compressed-images.zip');
+  };
+
+  window.clearCmp = () => {
+    queuedFiles=[]; results=[];
+    document.getElementById('cmp-fl').innerHTML='';
+    setStatus('st-main','idle','Ready');
+  };
+},
+
+// IMAGE RESIZE
+'img-resize': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Image Resize','Resize images to exact dimensions or by percentage',[['Offline','green'],['Aspect ratio lock','blue']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Width (px)</div>
+        <input type="number" id="r-w" value="800" min="1" style="min-width:100px">
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Height (px)</div>
+        <input type="number" id="r-h" value="600" min="1" style="min-width:100px">
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Mode</div>
+        <select id="r-mode">
+          <option value="stretch">Stretch to fit</option>
+          <option value="contain">Contain (letterbox)</option>
+          <option value="cover">Cover (crop)</option>
+        </select>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Output</div>
+        <select id="r-fmt">
+          <option value="image/png">PNG</option>
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+    </div>
+    ${dropZone('img-res','image/*',true,'⊡','Drop images to resize')}
+    <div id="res-fl" class="file-list"></div>
+    <div class="action-bar">
+      <div class="action-left">
+        <button class="btn btn-primary" onclick="window.runResize&&window.runResize()">⊡ Resize</button>
+        <button class="btn btn-ghost" onclick="window.dlResized&&window.dlResized()">↓ Download</button>
+        <button class="btn btn-ghost" onclick="window.clearRes&&window.clearRes()">Clear</button>
+      </div>
+      <div class="action-right"><span class="status status-idle" id="st-main">Ready — drop files, set dimensions, then click Resize</span></div>
+    </div>
+  `;
+  let queuedFiles = [];
+  let results = [];
+
+  dropHandlers['img-res'] = (files) => {
+    queuedFiles.push(...files);
+    renderResQueue();
+    setStatus('st-main','idle',`${queuedFiles.length} file(s) queued — set dimensions then click Resize`);
+  };
+
+  function renderResQueue() {
+    const fl = document.getElementById('res-fl');
+    fl.innerHTML = queuedFiles.map((f,i) => `
+      <div class="file-item" id="res-item-${i}">
+        <div class="file-icon" style="background:rgba(34,197,94,0.15)">⊡</div>
+        <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${fmt(f.size)}</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="window._removeResFile(${i})">✕</button>
+      </div>`).join('');
+  }
+
+  window._removeResFile = (i) => {
+    queuedFiles.splice(i,1);
+    renderResQueue();
+    setStatus('st-main','idle', queuedFiles.length ? `${queuedFiles.length} file(s) queued` : 'Ready');
+  };
+
+  window.runResize = async () => {
+    if(!queuedFiles.length) { setStatus('st-main','err','No files queued'); return; }
+    const w=parseInt(document.getElementById('r-w').value);
+    const h=parseInt(document.getElementById('r-h').value);
+    const mode=document.getElementById('r-mode').value;
+    const imgFmt=document.getElementById('r-fmt').value;
+    if(!w||!h) { setStatus('st-main','err','Enter valid dimensions'); return; }
+    results=[];
+    setStatus('st-main','loading','Resizing...');
+    for(let i=0;i<queuedFiles.length;i++) {
+      const file=queuedFiles[i];
+      const item=document.getElementById(`res-item-${i}`);
+      if(item) { item.querySelector('.btn').outerHTML='<span class="file-status fs-processing">Resizing...</span>'; }
+      try {
+        const blob=await resizeImage(file,w,h,mode,imgFmt);
+        if(item) {
+          item.querySelector('.file-size').textContent=`${fmt(file.size)} → ${fmt(blob.size)}`;
+          item.querySelector('.file-status').className='file-status fs-done';
+          item.querySelector('.file-status').textContent=`✓ ${w}×${h}`;
+        }
+        const ext2=imgFmt.split('/')[1].replace('jpeg','jpg');
+        results.push({blob,name:file.name.replace(/\.[^.]+$/,`.${w}x${h}.${ext2}`)});
+      } catch(e) {
+        if(item) { item.querySelector('.file-status').className='file-status fs-error'; item.querySelector('.file-status').textContent='Error'; }
+      }
+    }
+    setStatus('st-main','ok',`${results.length} file(s) resized — click Download`);
+  };
+
+  window.dlResized=async()=>{
+    if(!results.length){setStatus('st-main','err','Resize first');return;}
+    if(results.length===1){download(results[0].blob,results[0].name);return;}
+    await ensureJSZip();
+    const zip=new JSZip();
+    results.forEach(f=>zip.file(f.name,f.blob));
+    download(await zip.generateAsync({type:'blob'}),'resized-images.zip');
+  };
+
+  window.clearRes = () => {
+    queuedFiles=[]; results=[];
+    document.getElementById('res-fl').innerHTML='';
+    setStatus('st-main','idle','Ready');
+  };
+},
+
+// PDF MERGE
+'pdf-merge': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Merge PDFs','Combine multiple PDF files into one — drag to reorder',[['Offline','green'],['Unlimited files','blue']])}
+    ${dropZone('pdf-mrg','application/pdf',true,'📄','Drop PDF files to merge')}
+    <div id="pdf-mrg-list" class="file-list"></div>
+    ${actionBar("mergePDFs()",'<button class="btn btn-ghost" onclick="document.getElementById(\'pdf-mrg-list\').innerHTML=\'\';window._pdfMrgFiles=[]">Clear</button>')}
+  `;
+  window._pdfMrgFiles = [];
+  dropHandlers['pdf-mrg'] = (files) => {
+    files.forEach(f => window._pdfMrgFiles.push(f));
+    renderPdfList();
+  };
+  function renderPdfList() {
+    const fl = document.getElementById('pdf-mrg-list');
+    fl.innerHTML = window._pdfMrgFiles.map((f,i)=>`
+      <div class="file-item">
+        <div class="file-icon" style="background:rgba(239,68,68,0.15)">📄</div>
+        <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${fmt(f.size)}</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="window._pdfMrgFiles.splice(${i},1);renderPdfList()">Remove</button>
+      </div>`).join('');
+    window.renderPdfList = renderPdfList;
+  }
+  window.mergePDFs = async () => {
+    if(!window._pdfMrgFiles?.length) { setStatus('st-main','err','No files selected'); return; }
+    setStatus('st-main','loading','Merging...');
+    try {
+      await ensurePDFLib();
+      const { PDFDocument } = PDFLib;
+      const merged = await PDFDocument.create();
+      for(const file of window._pdfMrgFiles) {
+        const ab = await file.arrayBuffer();
+        const pdf = await PDFDocument.load(ab);
+        const pages = await merged.copyPages(pdf, pdf.getPageIndices());
+        pages.forEach(p => merged.addPage(p));
+      }
+      const bytes = await merged.save();
+      download(new Blob([bytes],{type:'application/pdf'}), 'merged.pdf');
+      setStatus('st-main','ok','Merged successfully');
+    } catch(e) { setStatus('st-main','err','Error: '+e.message); }
+  };
+},
+
+// PDF SPLIT
+'pdf-split': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Split / Extract PDF Pages','Extract specific pages or split into individual pages',[['Offline','green']])}
+    ${dropZone('pdf-spl','application/pdf',false,'✂','Drop a single PDF')}
+    <div class="options-panel" id="pdf-spl-opts" style="display:none">
+      <div class="opt-group">
+        <div class="opt-label">Page range (e.g. 1-3,5,7-9)</div>
+        <input type="text" id="spl-range" placeholder="1-3,5,7" style="min-width:220px">
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Mode</div>
+        <select id="spl-mode">
+          <option value="range">Extract range as one PDF</option>
+          <option value="each">Each page as separate PDF</option>
+        </select>
+      </div>
+    </div>
+    <div id="pdf-spl-info"></div>
+    ${actionBar("splitPDF()")}
+  `;
+  window._splFile = null;
+  dropHandlers['pdf-spl'] = async (files) => {
+    window._splFile = files[0];
+    try {
+      await ensurePDFLib();
+      const { PDFDocument } = PDFLib;
+      const ab = await files[0].arrayBuffer();
+      const pdf = await PDFDocument.load(ab);
+      document.getElementById('pdf-spl-opts').style.display='flex';
+      document.getElementById('pdf-spl-info').innerHTML=`<div class="file-item">
+        <div class="file-icon" style="background:rgba(239,68,68,0.15)">📄</div>
+        <div class="file-info"><div class="file-name">${files[0].name}</div>
+        <div class="file-size">${fmt(files[0].size)} · ${pdf.getPageCount()} pages</div></div>
+        <span class="file-status fs-done">Loaded</span></div>`;
+    } catch(e) { setStatus('st-main','err','Invalid PDF'); }
+  };
+  window.splitPDF = async () => {
+    if(!window._splFile) { setStatus('st-main','err','No file'); return; }
+    setStatus('st-main','loading','Processing...');
+    try {
+      await ensurePDFLib();
+      await ensureJSZip();
+      const { PDFDocument } = PDFLib;
+      const ab = await window._splFile.arrayBuffer();
+      const src = await PDFDocument.load(ab);
+      const total = src.getPageCount();
+      const rangeStr = document.getElementById('spl-range').value.trim();
+      const mode = document.getElementById('spl-mode').value;
+      let pages = [];
+      if(!rangeStr) { for(let i=0;i<total;i++) pages.push(i); }
+      else {
+        rangeStr.split(',').forEach(part => {
+          const [a,b] = part.split('-').map(x=>parseInt(x.trim())-1);
+          if(b===undefined) pages.push(a);
+          else for(let i=a;i<=b;i++) pages.push(i);
+        });
+        pages = pages.filter(p=>p>=0&&p<total);
+      }
+      if(mode==='each') {
+        await ensureJSZip();
+        const zip = new JSZip();
+        for(const pi of pages) {
+          const doc = await PDFDocument.create();
+          const [cp] = await doc.copyPages(src,[pi]);
+          doc.addPage(cp);
+          zip.file(`page-${pi+1}.pdf`, await doc.save());
+        }
+        download(await zip.generateAsync({type:'blob'}), 'pages.zip');
+      } else {
+        const doc = await PDFDocument.create();
+        const cps = await doc.copyPages(src, pages);
+        cps.forEach(p=>doc.addPage(p));
+        download(new Blob([await doc.save()],{type:'application/pdf'}),'extracted.pdf');
+      }
+      setStatus('st-main','ok','Done');
+    } catch(e) { setStatus('st-main','err',e.message); }
+  };
+},
+
+// PDF TO IMAGES
+'pdf-img': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('PDF Pages → Images','Convert each PDF page to a high-quality image',[['Offline','green'],['Per-page','blue']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Scale (DPI multiplier)</div>
+        <div class="slider-row">
+          <input type="range" id="pdf-scale" min="1" max="4" step="0.5" value="2" oninput="document.getElementById('scv').textContent=this.value+'x'">
+          <span class="slider-val" id="scv">2x</span>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Format</div>
+        <select id="pdf-img-fmt">
+          <option value="image/png">PNG (lossless)</option>
+          <option value="image/jpeg">JPEG</option>
+        </select>
+      </div>
+    </div>
+    ${dropZone('pdf-i','application/pdf',false,'⬡','Drop a PDF to convert')}
+    <div id="pdf-pg-preview" class="preview-grid"></div>
+    ${actionBar("window.dlPdfImgs&&window.dlPdfImgs()")}
+  `;
+  dropHandlers['pdf-i'] = async (files) => {
+    setStatus('st-main','loading','Loading PDF engine...');
+    try { await ensurePDFJS(); } catch(e) { setStatus('st-main','err','Could not load PDF.js — needs internet once'); return; }
+    const scale = parseFloat(document.getElementById('pdf-scale').value);
+    const imgFmt = document.getElementById('pdf-img-fmt').value;
+    setStatus('st-main','loading','Rendering pages...');
+    try {
+      const ab = await files[0].arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data: new Uint8Array(ab)}).promise;
+      const pg = document.getElementById('pdf-pg-preview');
+      pg.innerHTML='';
+      const results=[];
+      for(let i=1;i<=pdf.numPages;i++) {
+        const page = await pdf.getPage(i);
+        const vp = page.getViewport({scale});
+        const canvas = document.createElement('canvas');
+        canvas.width=vp.width; canvas.height=vp.height;
+        await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+        const blob = await new Promise(r=>canvas.toBlob(r,imgFmt,0.92));
+        const ext2=imgFmt.split('/')[1].replace('jpeg','jpg');
+        const name=`page-${i}.${ext2}`;
+        results.push({blob,name});
+        const url=URL.createObjectURL(blob);
+        const card=document.createElement('div');
+        card.className='preview-card';
+        card.innerHTML=`<img class="preview-img" src="${url}"><div class="preview-info"><div class="preview-name">Page ${i}</div><div class="preview-size">${fmt(blob.size)}</div></div>`;
+        pg.appendChild(card);
+      }
+      setStatus('st-main','ok',`${results.length} pages rendered`);
+      window.dlPdfImgs=async()=>{
+        if(results.length===1){download(results[0].blob,results[0].name);return;}
+        await ensureJSZip();
+        const zip=new JSZip();
+        results.forEach(f=>zip.file(f.name,f.blob));
+        download(await zip.generateAsync({type:'blob'}),'pdf-pages.zip');
+      };
+    } catch(e) { setStatus('st-main','err',e.message); }
+  };
+},
+
+// EXCEL <> CSV
+'xl-csv': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Excel ↔ CSV Converter','Convert .xlsx files to CSV and back, with sheet selection',[['Offline','green'],['Multi-sheet','blue']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Direction</div>
+        <select id="xl-dir">
+          <option value="to-csv">Excel → CSV</option>
+          <option value="to-xl">CSV → Excel</option>
+        </select>
+      </div>
+      <div class="opt-group" id="sheet-group" style="display:none">
+        <div class="opt-label">Sheet</div>
+        <select id="xl-sheet"></select>
+      </div>
+    </div>
+    ${dropZone('xl-f','.xlsx,.xls,.csv',false,'📊','Drop Excel or CSV file')}
+    <div id="xl-preview" style="overflow-x:auto;max-height:320px;"></div>
+    ${actionBar("window.xlDownload&&window.xlDownload()")}
+  `;
+  dropHandlers['xl-f'] = async (files) => {
+    const dir = document.getElementById('xl-dir').value;
+    const file = files[0];
+    setStatus('st-main','loading','Reading...');
+    try {
+      await ensureXLSX();
+      const ab = await file.arrayBuffer();
+      const wb = XLSX.read(ab, {type:'array'});
+      if(dir==='to-csv') {
+        const sg = document.getElementById('sheet-group');
+        sg.style.display='flex';
+        const sel = document.getElementById('xl-sheet');
+        sel.innerHTML = wb.SheetNames.map(n=>`<option>${n}</option>`).join('');
+        const render = () => {
+          const sheet = wb.Sheets[sel.value];
+          const csv = XLSX.utils.sheet_to_csv(sheet);
+          const rows = csv.split('\n').slice(0,20);
+          document.getElementById('xl-preview').innerHTML=`<table style="border-collapse:collapse;font-size:11px;font-family:var(--font-mono);width:100%">${rows.map((r,ri)=>`<tr>${r.split(',').map(c=>`<td style="border:1px solid var(--border);padding:4px 8px;${ri===0?'font-weight:600;background:var(--bg3)':''}">${c}</td>`).join('')}</tr>`).join('')}</table>`;
+          window.xlDownload=()=>{ downloadText(csv, file.name.replace(/\.[^.]+$/,'')+'-'+sel.value+'.csv','text/csv'); };
+        };
+        sel.onchange=render; render();
+      } else {
+        const csv = await file.text();
+        const ws = XLSX.utils.aoa_to_sheet(csv.split('\n').map(r=>r.split(',')));
+        const wb2 = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb2, ws, 'Sheet1');
+        window.xlDownload=()=>{
+          const buf = XLSX.write(wb2,{type:'array',bookType:'xlsx'});
+          download(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),file.name.replace('.csv','.xlsx'));
+        };
+        document.getElementById('xl-preview').innerHTML='<div class="file-item"><div class="file-info"><div class="file-name">'+file.name+' ready to convert</div></div><span class="file-status fs-done">Loaded</span></div>';
+      }
+      setStatus('st-main','ok','Ready');
+    } catch(e) { setStatus('st-main','err',e.message); }
+  };
+},
+
+// CSV <> JSON
+'csv-json': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('CSV ↔ JSON','Convert CSV to JSON array and JSON array back to CSV',[['Offline','green']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Direction</div>
+        <select id="cj-dir"><option value="csv-json">CSV → JSON</option><option value="json-csv">JSON → CSV</option></select>
+      </div>
+    </div>
+    ${textIO('Input','Output','Paste CSV or JSON here...')}
+    ${actionBar("downloadTextOutput('output.json')")}
+  `;
+  currentTextConvert = (inp) => {
+    const dir = document.getElementById('cj-dir').value;
+    if(dir==='csv-json') {
+      const lines=inp.trim().split('\n');
+      const hdrs=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+      return JSON.stringify(lines.slice(1).map(line=>{
+        const vals=line.match(/"[^"]*"|[^,]*/g)||[];
+        const obj={};
+        hdrs.forEach((h,i)=>obj[h]=(vals[i]||'').replace(/^"|"$/g,'').trim());
+        return obj;
+      }),null,2);
+    } else {
+      const arr=JSON.parse(inp);
+      if(!Array.isArray(arr)) throw new Error('Input must be a JSON array');
+      const keys=[...new Set(arr.flatMap(Object.keys))];
+      const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+      return [keys.map(esc).join(','),...arr.map(r=>keys.map(k=>esc(r[k]??'')).join(','))].join('\n');
+    }
+  };
+  window.downloadTextOutput=(name)=>{const v=document.getElementById('ta-out')?.value;if(v)downloadText(v,name);};
+},
+
+// XML <> JSON
+'xml-json': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('XML ↔ JSON Converter','Convert between XML and JSON formats with structure preservation',[['Offline','green']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Direction</div>
+        <select id="xj-dir"><option value="xml-json">XML → JSON</option><option value="json-xml">JSON → XML</option></select>
+      </div>
+    </div>
+    ${textIO('Input','Output','Paste XML or JSON here...')}
+    ${actionBar("downloadTextOutput('output.json')")}
+  `;
+  currentTextConvert = (inp) => {
+    const dir=document.getElementById('xj-dir').value;
+    if(dir==='xml-json') {
+      const parser=new DOMParser();
+      const doc=parser.parseFromString(inp,'application/xml');
+      if(doc.querySelector('parsererror')) throw new Error('Invalid XML');
+      function n2o(node) {
+        if(node.nodeType===3) return node.textContent.trim();
+        const obj={};
+        if(node.attributes?.length) { obj['@attrs']={}; for(let a of node.attributes) obj['@attrs'][a.name]=a.value; }
+        const kids=Array.from(node.childNodes).filter(n=>n.nodeType!==3||n.textContent.trim());
+        if(!kids.length) return node.textContent.trim()||obj;
+        for(let c of node.childNodes) {
+          if(c.nodeType===3){if(c.textContent.trim())obj['#text']=c.textContent.trim();continue;}
+          const v=n2o(c);
+          if(obj[c.nodeName]!==undefined){if(!Array.isArray(obj[c.nodeName]))obj[c.nodeName]=[obj[c.nodeName]];obj[c.nodeName].push(v);}
+          else obj[c.nodeName]=v;
+        }
+        return obj;
+      }
+      const r={};r[doc.documentElement.nodeName]=n2o(doc.documentElement);
+      return JSON.stringify(r,null,2);
+    } else {
+      const obj=JSON.parse(inp);
+      function toXml(val,tag,ind){
+        const p=' '.repeat(ind);
+        if(val===null||val===undefined)return`${p}<${tag}/>\n`;
+        if(typeof val!=='object')return`${p}<${tag}>${String(val)}</${tag}>\n`;
+        if(Array.isArray(val))return val.map(v=>toXml(v,tag,ind)).join('');
+        let attrs='',ch='';
+        if(val['@attrs'])for(const[k,v]of Object.entries(val['@attrs']))attrs+=` ${k}="${v}"`;
+        for(const[k,v]of Object.entries(val)){if(k==='@attrs'||k==='#text')continue;ch+=toXml(v,k,ind+2);}
+        if(val['#text'])ch+=val['#text'];
+        return ch?`${p}<${tag}${attrs}>\n${ch}${p}</${tag}>\n`:`${p}<${tag}${attrs}/>\n`;
+      }
+      const root=Object.keys(obj)[0];
+      return`<?xml version="1.0" encoding="UTF-8"?>\n`+toXml(obj[root],root,0);
+    }
+  };
+  window.downloadTextOutput=(name)=>{const v=document.getElementById('ta-out')?.value;if(v)downloadText(v,name);};
+},
+
+// JSON <> YAML
+'json-yaml': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('JSON ↔ YAML Converter','Convert between JSON and YAML formats',[['Offline','green']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Direction</div>
+        <select id="jy-dir"><option value="json-yaml">JSON → YAML</option><option value="yaml-json">YAML → JSON</option></select>
+      </div>
+    </div>
+    ${textIO('Input','Output','Paste JSON or YAML here...')}
+    ${actionBar("downloadTextOutput('output.yaml')")}
+  `;
+  currentTextConvert = (inp) => {
+    const dir=document.getElementById('jy-dir').value;
+    if(dir==='json-yaml') {
+      const obj=JSON.parse(inp);
+      function toY(val,ind){
+        const p=' '.repeat(ind);
+        if(val===null)return'null';
+        if(typeof val==='boolean'||typeof val==='number')return String(val);
+        if(typeof val==='string')return val.includes('\n')?`|\n${val.split('\n').map(l=>p+'  '+l).join('\n')}`:(/[:#\[\]{},&*?|<>=!%@`]/.test(val)||val.trim()!==val?`"${val.replace(/"/g,'\\"')}"`:val||'""');
+        if(Array.isArray(val))return val.length?'\n'+val.map(v=>`${p}- ${toY(v,ind+2).trimStart()}`).join('\n'):'[]';
+        const e=Object.entries(val);
+        if(!e.length)return'{}';
+        return'\n'+e.map(([k,v])=>{const vs=toY(v,ind+2);return`${p}${k}:${vs.startsWith('\n')?' '+vs.trimStart():' '+vs}`;}).join('\n');
+      }
+      return Object.entries(obj).map(([k,v])=>{const vs=toY(v,2);return`${k}:${vs.startsWith('\n')?' '+vs.trimStart():' '+vs}`;}).join('\n');
+    } else {
+      function parseS(s){if(s==='null'||s==='~')return null;if(s==='true')return true;if(s==='false')return false;if(!isNaN(s)&&s!=='')return Number(s);return s.replace(/^["']|["']$/g,'');}
+      function parse(lines,ind){
+        const res={};const arr=[];let isArr=false;let i=0;
+        while(i<lines.length){
+          const line=lines[i];const stripped=line.trimStart();const ci=line.length-stripped.length;
+          if(ci<ind)break;
+          if(stripped.startsWith('- ')){isArr=true;arr.push(parseS(stripped.slice(2).trim()));}
+          else if(stripped.includes(': ')||stripped.endsWith(':')){
+            const ci2=stripped.indexOf(':');const key=stripped.slice(0,ci2).trim();const rest=stripped.slice(ci2+1).trim();
+            if(rest)res[key]=parseS(rest);
+            else{const sub=lines.slice(i+1).filter(l=>l.trim()&&(l.length-l.trimStart().length)>ci);const[obj]=parse(sub,ci+2);res[key]=obj;i+=sub.length;}
+          }
+          i++;
+        }
+        return[isArr?arr:res];
+      }
+      const lines=inp.split('\n').filter(l=>!l.trim().startsWith('#'));
+      const[parsed]=parse(lines,0);
+      return JSON.stringify(parsed,null,2);
+    }
+  };
+  window.downloadTextOutput=(name)=>{const v=document.getElementById('ta-out')?.value;if(v)downloadText(v,name);};
+},
+
+// JSON FORMATTER
+'json-fmt': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('JSON Formatter','Prettify or minify JSON with validation',[['Offline','green']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Mode</div>
+        <select id="jf-mode"><option value="pretty">Prettify</option><option value="minify">Minify</option></select>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Indent</div>
+        <select id="jf-ind"><option value="2">2 spaces</option><option value="4">4 spaces</option></select>
+      </div>
+    </div>
+    ${textIO('JSON Input','Formatted Output','Paste JSON here...')}
+    ${actionBar("downloadTextOutput('formatted.json')")}
+  `;
+  currentTextConvert=(inp)=>{
+    const obj=JSON.parse(inp);
+    const mode=document.getElementById('jf-mode').value;
+    const ind=parseInt(document.getElementById('jf-ind').value);
+    return mode==='pretty'?JSON.stringify(obj,null,ind):JSON.stringify(obj);
+  };
+  window.downloadTextOutput=(name)=>{const v=document.getElementById('ta-out')?.value;if(v)downloadText(v,name);};
+},
+
+// MARKDOWN TO HTML
+'md-html': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Markdown → HTML','Convert Markdown to clean HTML',[['Offline','green']])}
+    ${textIO('Markdown','HTML Output','# Hello World\n\nThis is **bold** and *italic*.\n\n- Item 1\n- Item 2')}
+    ${actionBar("downloadTextOutput('output.html')")}
+  `;
+  currentTextConvert=(inp)=>{
+    return inp
+      .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+      .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+      .replace(/^# (.+)$/gm,'<h1>$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/`(.+?)`/g,'<code>$1</code>')
+      .replace(/^\- (.+)$/gm,'<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s,'<ul>$1</ul>')
+      .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+      .replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2">$1</a>')
+      .replace(/\n\n/g,'</p><p>')
+      .replace(/^(?!<[h|u|o|l])/gm,'')
+      .trim();
+  };
+  window.downloadTextOutput=(name)=>{const v=document.getElementById('ta-out')?.value;if(v)downloadText(v,name,'text/html');};
+},
+
+// ENCODING
+'encode': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('Encoding & Decoding','Base64, URL, Hex, HTML entities — all offline',[['Offline','green']])}
+    <div class="options-panel">
+      <div class="opt-group">
+        <div class="opt-label">Type</div>
+        <select id="enc-type">
+          <option value="b64e">Base64 Encode</option>
+          <option value="b64d">Base64 Decode</option>
+          <option value="urle">URL Encode</option>
+          <option value="urld">URL Decode</option>
+          <option value="hexe">Text → Hex</option>
+          <option value="hexd">Hex → Text</option>
+          <option value="htmle">HTML Entities Encode</option>
+          <option value="htmld">HTML Entities Decode</option>
+        </select>
+      </div>
+    </div>
+    ${textIO('Input','Output','Paste text to encode or decode...')}
+    ${actionBar("downloadTextOutput('encoded.txt')")}
+  `;
+  currentTextConvert=(inp)=>{
+    const t=document.getElementById('enc-type').value;
+    switch(t){
+      case'b64e':return btoa(unescape(encodeURIComponent(inp)));
+      case'b64d':return decodeURIComponent(escape(atob(inp)));
+      case'urle':return encodeURIComponent(inp);
+      case'urld':return decodeURIComponent(inp);
+      case'hexe':return Array.from(new TextEncoder().encode(inp)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      case'hexd':return new TextDecoder().decode(new Uint8Array(inp.match(/.{1,2}/g).map(b=>parseInt(b,16))));
+      case'htmle':return inp.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      case'htmld':return inp.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+      default:return inp;
+    }
+  };
+  window.downloadTextOutput=(name)=>{const v=document.getElementById('ta-out')?.value;if(v)downloadText(v,name);};
+},
+
+// ZIP CREATOR
+'zip': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('ZIP Creator','Bundle multiple files into a ZIP archive — nothing uploaded',[['Offline','green'],['Any file type','blue']])}
+    ${dropZone('zp-f','*',true,'📦','Drop files to ZIP')}
+    <div id="zip-fl" class="file-list"></div>
+    ${actionBar("createZip()",'<button class="btn btn-ghost" onclick="window._zipFiles=[];document.getElementById(\'zip-fl\').innerHTML=\'\'">Clear</button>')}
+  `;
+  window._zipFiles=[];
+  dropHandlers['zp-f']=(files)=>{
+    window._zipFiles.push(...files);
+    const fl=document.getElementById('zip-fl');
+    fl.innerHTML=window._zipFiles.map((f,i)=>`
+      <div class="file-item">
+        <div class="file-icon" style="background:${iconBg(f.name)}">${getFileIcon(f.name)}</div>
+        <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${fmt(f.size)}</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="window._zipFiles.splice(${i},1);showTool('zip')">✕</button>
+      </div>`).join('');
+    setStatus('st-main','ok',`${window._zipFiles.length} file(s) queued`);
+  };
+  window.createZip=async()=>{
+    if(!window._zipFiles?.length){setStatus('st-main','err','No files');return;}
+    setStatus('st-main','loading','Creating ZIP...');
+    await ensureJSZip();
+    const zip=new JSZip();
+    for(const f of window._zipFiles) zip.file(f.name,await f.arrayBuffer());
+    download(await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}),'archive.zip');
+    setStatus('st-main','ok','ZIP created');
+  };
+},
+
+// ZIP EXTRACTOR
+'unzip': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    ${toolHeader('ZIP Extractor','Inspect and extract ZIP archive contents offline',[['Offline','green']])}
+    ${dropZone('uzp-f','.zip',false,'📂','Drop a ZIP file')}
+    <div id="uzp-fl" class="file-list"></div>
+    ${actionBar("window.extractAll&&window.extractAll()",'<button class="btn btn-ghost" id="dl-sel-btn" style="display:none" onclick="window.extractSelected&&window.extractSelected()">Download selected</button>')}
+  `;
+  dropHandlers['uzp-f']=async(files)=>{
+    setStatus('st-main','loading','Reading ZIP...');
+    try{
+      await ensureJSZip();
+      const ab=await files[0].arrayBuffer();
+      const zip=await JSZip.loadAsync(ab);
+      const entries=Object.values(zip.files).filter(f=>!f.dir);
+      const fl=document.getElementById('uzp-fl');
+      fl.innerHTML=entries.map((f,i)=>`
+        <div class="file-item">
+          <input type="checkbox" id="chk-${i}" checked style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+          <div class="file-icon" style="background:${iconBg(f.name)}">${getFileIcon(f.name)}</div>
+          <div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${fmt(f._data?.uncompressedSize||0)}</div></div>
+        </div>`).join('');
+      document.getElementById('dl-sel-btn').style.display='inline-flex';
+      setStatus('st-main','ok',`${entries.length} files found`);
+      window.extractAll=async()=>{
+        await ensureJSZip();
+        const out=new JSZip();
+        for(const f of entries) out.file(f.name,await f.async('arraybuffer'));
+        download(await out.generateAsync({type:'blob'}),'extracted.zip');
+      };
+      window.extractSelected=async()=>{
+        await ensureJSZip();
+        const sel=entries.filter((_,i)=>document.getElementById('chk-'+i)?.checked);
+        if(!sel.length){setStatus('st-main','err','Nothing selected');return;}
+        if(sel.length===1){
+          const blob=new Blob([await sel[0].async('arraybuffer')]);
+          download(blob,sel[0].name.split('/').pop());
+        } else {
+          const out=new JSZip();
+          for(const f of sel) out.file(f.name,await f.async('arraybuffer'));
+          download(await out.generateAsync({type:'blob'}),'selected.zip');
+        }
+      };
+    } catch(e){setStatus('st-main','err',e.message);}
+  };
+},
+
+
+// AI LOG ANALYSER
+'ai-log': () => {
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    <div class="tool-header">
+      <div>
+        <div class="tool-title" style="background:linear-gradient(135deg,#818cf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">AI Log Analyser</div>
+        <div class="tool-desc">Paste any log, stacktrace, or error dump — AI explains the root cause and how to fix it</div>
+      </div>
+      <div class="tool-tags">
+        <span class="tag tag-purple">Any AI Provider</span>
+        <span class="tag tag-blue">Structured output</span>
+      </div>
+    </div>
+
+    <div class="ai-settings">
+      <div class="ai-settings-title">
+        ✦ AI Provider Connection
+        <span id="conn-status" class="ai-disconnected">● Not connected</span>
+      </div>
+      <div class="ai-input-group" style="flex:3;min-width:300px">
+        <label>Endpoint URL <span style="color:var(--text3);font-weight:400;text-transform:none">(full URL incl. path)</span></label>
+        <input type="text" id="az-endpoint" placeholder="https://your-resource.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-02-01" oninput="window.checkConn&&window.checkConn()">
+      </div>
+      <div class="ai-input-group" style="flex:2;min-width:200px">
+        <label>API Key</label>
+        <input type="password" id="az-key" placeholder="••••••••••••••••" oninput="window.checkConn&&window.checkConn()">
+      </div>
+      <div class="ai-input-group" style="flex:0;min-width:auto">
+        <label>Auth Header</label>
+        <select id="az-auth" style="min-width:180px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);font-size:12px;padding:8px 12px;outline:none;font-family:DM Sans,sans-serif" onchange="window.checkConn&&window.checkConn()">
+          <option value="api-key">api-key</option>
+          <option value="bearer">Authorization: Bearer</option>
+        </select>
+      </div>
+    </div>
+    <div id="endpoint-hint" style="font-size:11px;color:var(--text3);padding:2px 4px;display:none"></div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div class="log-type-bar">
+          <button class="log-type-btn active" onclick="window.setLogType&&window.setLogType(this,'auto')">Auto-detect</button>
+          <button class="log-type-btn" onclick="window.setLogType&&window.setLogType(this,'java')">Java/Spring</button>
+          <button class="log-type-btn" onclick="window.setLogType&&window.setLogType(this,'python')">Python</button>
+          <button class="log-type-btn" onclick="window.setLogType&&window.setLogType(this,'node')">Node.js</button>
+          <button class="log-type-btn" onclick="window.setLogType&&window.setLogType(this,'dotnet')">.NET</button>
+          <button class="log-type-btn" onclick="window.setLogType&&window.setLogType(this,'sql')">SQL / DB</button>
+          <button class="log-type-btn" onclick="window.setLogType&&window.setLogType(this,'infra')">Infrastructure</button>
+          <button class="log-type-btn" onclick="window.setLogType&&window.setLogType(this,'swift')">SWIFT / Financial</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('log-input').value='';document.getElementById('ai-output').innerHTML='';setStatus('ai-st','idle','Ready')">Clear</button>
+      </div>
+      <textarea class="log-input-area" id="log-input" oninput="window.checkLogInput&&window.checkLogInput()" placeholder="Paste your log output, stacktrace, error message, or any technical output here...
+
+Example:
+java.lang.NullPointerException: Cannot invoke method getUser() on null object
+  at com.six.payment.PaymentService.processTransaction(PaymentService.java:142)
+  at com.six.payment.PaymentController.submit(PaymentController.java:87)
+  ..."></textarea>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <button class="ai-analyse-btn" id="analyse-btn" onclick="runAnalysis()">
+        ✦ Analyse Log
+      </button>
+      <span class="status status-idle" id="ai-st">Paste a log and click Analyse</span>
+    </div>
+
+    <div id="ai-output"></div>
+  `;
+
+  window.checkConn = () => {
+    const ep = document.getElementById('az-endpoint').value.trim();
+    const key = document.getElementById('az-key').value.trim();
+    const auth = document.getElementById('az-auth').value;
+    const st = document.getElementById('conn-status');
+    const hint = document.getElementById('endpoint-hint');
+
+    // Show endpoint hint based on auth type
+    if(ep) {
+      hint.style.display = 'block';
+      if(auth === 'api-key') {
+        hint.textContent = 'Azure format: https://your-resource.openai.azure.com/openai/deployments/YOUR-MODEL/chat/completions?api-version=2024-02-01';
+      } else {
+        hint.textContent = 'OpenAI format: https://api.openai.com/v1/chat/completions';
+      }
+    } else {
+      hint.style.display = 'none';
+    }
+
+    if(ep && key) {
+      st.className = 'ai-connected';
+      st.textContent = '● Connected';
+      sessionStorage.setItem('ai-creds', JSON.stringify({ endpoint: ep, key, auth }));
+    } else {
+      st.className = 'ai-disconnected';
+      st.textContent = '● Not connected';
+    }
+  };
+
+  // Restore saved credentials — AFTER all window.* functions defined
+  const saved = JSON.parse(sessionStorage.getItem('ai-creds') || '{}');
+  if(saved.endpoint) document.getElementById('az-endpoint').value = saved.endpoint;
+  if(saved.key) document.getElementById('az-key').value = saved.key;
+  if(saved.auth) document.getElementById('az-auth').value = saved.auth;
+  window.checkConn(); // safe to call now — defined above
+
+  window.setLogType = (btn, type) => {
+    document.querySelectorAll('.log-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window._logType = type;
+  };
+  // Expose globally for inline onclick
+  window._setLogType = window.setLogType;
+  window._logType = 'auto';
+
+  window.checkLogInput = () => {
+    const creds = JSON.parse(sessionStorage.getItem('ai-creds') || '{}');
+    const st = document.getElementById('ai-st');
+    if(!st) return;
+    const hasEndpoint = creds.endpoint && creds.endpoint.trim();
+    const hasKey = creds.key && creds.key.trim();
+    if(!hasEndpoint && !hasKey) {
+      st.className = 'status status-err';
+      st.textContent = 'Enter your API endpoint and key above before analysing';
+    } else if(!hasEndpoint) {
+      st.className = 'status status-err';
+      st.textContent = 'Endpoint URL is missing — fill it in above';
+    } else if(!hasKey) {
+      st.className = 'status status-err';
+      st.textContent = 'API key is missing — fill it in above';
+    } else {
+      st.className = 'status status-ok';
+      st.textContent = 'Ready — click Analyse Log';
+    }
+  };
+
+  window.runAnalysis = async () => {
+    const log = document.getElementById('log-input').value.trim();
+    if(!log) { setAiStatus('err', 'Paste a log first'); return; }
+
+    const creds = JSON.parse(sessionStorage.getItem('ai-creds') || '{}');
+    if(!creds.endpoint || !creds.key) {
+      setAiStatus('err', 'Fill in your API endpoint and key above first');
+      return;
+    }
+
+    const btn = document.getElementById('analyse-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="thinking-dots"><span></span><span></span><span></span></div> Analysing...';
+    setAiStatus('loading', 'Sending to Azure OpenAI...');
+    document.getElementById('ai-output').innerHTML = '';
+
+    const logType = window._logType === 'auto' ? 'auto-detect the technology' : `treat this as a ${window._logType} log`;
+
+    const systemPrompt = `You are an expert SRE and software engineer at a financial infrastructure company. 
+You analyse logs, stacktraces, and error outputs and provide clear, structured diagnoses.
+Always respond in valid JSON only. No markdown, no prose outside JSON.
+
+Response format:
+{
+  "severity": "CRITICAL" | "WARNING" | "INFO",
+  "one_line_summary": "One sharp sentence describing the core problem",
+  "root_cause": "2-3 sentences explaining exactly what went wrong and why",
+  "explanation": "Detailed technical explanation of the failure chain",
+  "fix_steps": ["Step 1 description", "Step 2 description", "Step 3 description"],
+  "watch_for": ["Related thing to monitor 1", "Related thing to monitor 2", "Related thing to monitor 3"],
+  "affected_component": "Name of the failing component or service"
+}`;
+
+    const userPrompt = `Please ${logType} and analyse this log output:
+
+${log.slice(0, 8000)}`;
+
+    try {
+      const url = creds.endpoint.trim();
+      const authHeader = creds.auth === 'bearer'
+        ? { 'Authorization': 'Bearer ' + creds.key }
+        : { 'api-key': creds.key };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeader
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.2,
+          max_tokens: 1000
+        })
+      });
+
+      if(!res.ok) {
+        const errBody = await res.text();
+        throw new Error(`API error ${res.status}: ${errBody.slice(0,200)}`);
+      }
+
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content || '';
+
+      let parsed;
+      try {
+        const cleaned = raw.replace(/^\x60\x60\x60json\n?|^\x60\x60\x60\n?|\x60\x60\x60$/gm, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch(e) {
+        throw new Error('Could not parse AI response. Raw: ' + raw.slice(0, 200));
+      }
+
+      renderResult(parsed);
+      setAiStatus('ok', 'Analysis complete');
+
+    } catch(e) {
+      setAiStatus('err', e.message);
+      document.getElementById('ai-output').innerHTML = `
+        <div class="result-card">
+          <div class="result-card-header" style="color:var(--color-text-danger)">Error</div>
+          <div class="result-card-body" style="color:var(--red)">${e.message}</div>
+        </div>`;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '✦ Analyse Log';
+    }
+  };
+
+  function setAiStatus(type, msg) {
+    const el = document.getElementById('ai-st');
+    if(!el) return;
+    el.className = 'status status-' + type;
+    el.textContent = msg;
+  }
+
+  function renderResult(d) {
+    const sevClass = d.severity === 'CRITICAL' ? 'critical' : d.severity === 'WARNING' ? 'warning' : 'info';
+    const badgeClass = d.severity === 'CRITICAL' ? 'badge-critical' : d.severity === 'WARNING' ? 'badge-warning' : 'badge-info';
+
+    const fixSteps = (d.fix_steps || []).map((step, i) => `
+      <div class="fix-step">
+        <div class="fix-step-num">${i+1}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6">${escHtml(step)}</div>
+      </div>`).join('');
+
+    const watchItems = (d.watch_for || []).map(w => `
+      <div class="watch-item">
+        <div class="watch-dot"></div>
+        <div>${escHtml(w)}</div>
+      </div>`).join('');
+
+    document.getElementById('ai-output').innerHTML = `
+      <div class="ai-result">
+
+        <div class="severity-bar severity-${sevClass}">
+          <span class="severity-badge ${badgeClass}">${escHtml(d.severity || 'INFO')}</span>
+          ${d.affected_component ? `<span style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">${escHtml(d.affected_component)}</span>` : ''}
+          <span class="severity-summary">${escHtml(d.one_line_summary || '')}</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="result-card">
+            <div class="result-card-header">🎯 Root cause</div>
+            <div class="result-card-body">${escHtml(d.root_cause || '')}</div>
+          </div>
+          <div class="result-card">
+            <div class="result-card-header">🔍 Explanation</div>
+            <div class="result-card-body">${escHtml(d.explanation || '')}</div>
+          </div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-card-header">🔧 Fix steps</div>
+          <div class="result-card-body" style="padding:8px 16px">${fixSteps || '<div style="color:var(--text3);font-size:13px;padding:6px 0">No fix steps provided</div>'}</div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-card-header">👁 Watch out for</div>
+          <div class="result-card-body" style="padding:8px 16px">${watchItems || '<div style="color:var(--text3);font-size:13px;padding:6px 0">No additional warnings</div>'}</div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="copyAnalysis()">Copy as text</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadAnalysis()">Download report</button>
+        </div>
+
+      </div>`;
+
+    // Store for export
+    window._lastAnalysis = d;
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  window.copyAnalysis = () => {
+    const d = window._lastAnalysis;
+    if(!d) return;
+    const txt = [
+      `SEVERITY: ${d.severity}`,
+      `COMPONENT: ${d.affected_component || 'Unknown'}`,
+      `\nSUMMARY\n${d.one_line_summary}`,
+      `\nROOT CAUSE\n${d.root_cause}`,
+      `\nEXPLANATION\n${d.explanation}`,
+      `\nFIX STEPS\n${(d.fix_steps||[]).map((s,i)=>`${i+1}. ${s}`).join('\n')}`,
+      `\nWATCH FOR\n${(d.watch_for||[]).map(w=>`• ${w}`).join('\n')}`
+    ].join('\n');
+    copyText(txt);
+    setAiStatus('ok','Copied to clipboard');
+  };
+
+  window.downloadAnalysis = () => {
+    const d = window._lastAnalysis;
+    if(!d) return;
+    const txt = [
+      `LOG ANALYSIS REPORT`,
+      `Generated: ${new Date().toISOString()}`,
+      `${'='.repeat(60)}`,
+      `SEVERITY:  ${d.severity}`,
+      `COMPONENT: ${d.affected_component || 'Unknown'}`,
+      ``,
+      `SUMMARY`,
+      d.one_line_summary,
+      ``,
+      `ROOT CAUSE`,
+      d.root_cause,
+      ``,
+      `EXPLANATION`,
+      d.explanation,
+      ``,
+      `FIX STEPS`,
+      ...(d.fix_steps||[]).map((s,i)=>`${i+1}. ${s}`),
+      ``,
+      `WATCH FOR`,
+      ...(d.watch_for||[]).map(w=>`• ${w}`)
+    ].join('\n');
+    downloadText(txt, 'log-analysis-report.txt');
+  };
+},
+
+}; // end tools
+
+// ── Image Processing Utils ─────────────────────────────────────────────────
+function convertImage(file, fmt, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if(fmt === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); }
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Conversion failed')), fmt, quality);
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = url;
+  });
+}
+
+function resizeImage(file, w, h, mode, fmt) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if(fmt==='image/jpeg'){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);}
+      if(mode==='stretch') {
+        ctx.drawImage(img,0,0,w,h);
+      } else {
+        const ar = img.naturalWidth/img.naturalHeight;
+        const tar = w/h;
+        let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight;
+        if(mode==='cover') {
+          if(ar>tar){sw=img.naturalHeight*tar;sx=(img.naturalWidth-sw)/2;}
+          else{sh=img.naturalWidth/tar;sy=(img.naturalHeight-sh)/2;}
+        }
+        let dw=w,dh=h;
+        if(mode==='contain') {
+          if(ar>tar){dh=w/ar;}else{dw=h*ar;}
+          ctx.drawImage(img,sx,sy,sw,sh,(w-dw)/2,(h-dh)/2,dw,dh);
+        } else {
+          ctx.drawImage(img,sx,sy,sw,sh,0,0,w,h);
+        }
+      }
+      URL.revokeObjectURL(url);
+      canvas.toBlob(b=>b?resolve(b):reject(new Error('Failed')),fmt,0.92);
+    };
+    img.onerror=()=>reject(new Error('Failed to load'));
+    img.src=url;
+  });
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+showTool('img-convert');
+</script>
+</body>
+</html>
