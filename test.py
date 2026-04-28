@@ -1,22 +1,24 @@
-import tempfile
-import os
-
-def ensure_policy(admin, policy):
-    name = policy['name']
-    try:
-        policy_json = build_policy_doc(policy)
-        
-        # Write to temp file — policy_add needs a file path, not a string
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            f.write(policy_json)
-            tmp_path = f.name
-        
-        admin.policy_add(name, tmp_path)
-        print(f'  [+] Policy ready: {name}')
-        
-    except Exception as e:
-        print(f'  [!] Policy {name}: {e}')
-    finally:
-        # Always clean up the temp file
-        if 'tmp_path' in locals() and os.path.exists(tmp_path):
-            os.unlink(tmp_path)
+jvm.config: |
+    -server
+    -XX:InitialRAMPercentage=80
+    -XX:MaxRAMPercentage=80
+    -XX:MaxRAMPercentage=80
+    -XX:G1HeapRegionSize=32M
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    -XX:-OmitStackTraceInFastThrow
+    -XX:ReservedCodeCacheSize=256M
+    -XX:PerMethodRecompilationCutoff=10000
+    -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.attach.allowAttachSelf=true
+    -Djdk.nio.maxCachedBufferSize=2000000
+    -Dfile.encoding=UTF-8
+    -XX:+EnableDynamicAgentLoading
+    -Djava.security.manager=allow
+    -Dcom.sun.management.jmxremote
+    -Dcom.sun.management.jmxremote.port=9080
+    -Dcom.sun.management.jmxremote.rmi.port=9080
+    -Dcom.sun.management.jmxremote.authenticate=false
+    -Dcom.sun.management.jmxremote.ssl=false
+    -Djava.rmi.server.hostname=127.0.0.1
