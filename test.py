@@ -1,24 +1,29 @@
-jvm.config: |
-    -server
-    -XX:InitialRAMPercentage=80
-    -XX:MaxRAMPercentage=80
-    -XX:MaxRAMPercentage=80
-    -XX:G1HeapRegionSize=32M
-    -XX:+ExplicitGCInvokesConcurrent
-    -XX:+HeapDumpOnOutOfMemoryError
-    -XX:+ExitOnOutOfMemoryError
-    -XX:-OmitStackTraceInFastThrow
-    -XX:ReservedCodeCacheSize=256M
-    -XX:PerMethodRecompilationCutoff=10000
-    -XX:PerBytecodeRecompilationCutoff=10000
-    -Djdk.attach.allowAttachSelf=true
-    -Djdk.nio.maxCachedBufferSize=2000000
-    -Dfile.encoding=UTF-8
-    -XX:+EnableDynamicAgentLoading
-    -Djava.security.manager=allow
-    -Dcom.sun.management.jmxremote
-    -Dcom.sun.management.jmxremote.port=9080
-    -Dcom.sun.management.jmxremote.rmi.port=9080
-    -Dcom.sun.management.jmxremote.authenticate=false
-    -Dcom.sun.management.jmxremote.ssl=false
-    -Djava.rmi.server.hostname=127.0.0.1
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.applicationName }}-jmx-config
+  labels:
+    app: {{ .Values.applicationName }}
+data:
+  jmx-config.yaml: |
+    hostPort: localhost:9080
+    startDelaySeconds: 10
+    ssl: false
+    rules:
+      - pattern: 'trino.execution<name=QueryManager><>(\w+)'
+        name: trino_query_manager_$1
+        type: GAUGE
+      - pattern: 'trino.execution<name=TaskManager><>(\w+)'
+        name: trino_task_manager_$1
+        type: GAUGE
+      - pattern: 'trino.memory<name=ClusterMemoryManager><>(\w+)'
+        name: trino_memory_$1
+        type: GAUGE
+      - pattern: 'java.lang<type=Memory><HeapMemoryUsage>(\w+)'
+        name: jvm_heap_$1
+        type: GAUGE
+      - pattern: 'java.lang<type=GarbageCollector,name=(.*)><CollectionCount>'
+        name: jvm_gc_collection_count
+        labels:
+          gc: $1
+        type: COUNTER
